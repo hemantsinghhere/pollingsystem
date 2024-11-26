@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// Define the database connection
+
+
+datasource db {
+  provider = "postgresql" // Use PostgreSQL as the database
+  url      = env("DATABASE_URL") // Database URL stored in the .env file
+}
+
+// Generate Prisma client for accessing the database
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User model
+model User {
+  id        Int      @id @default(autoincrement()) // Primary key
+  username  String   @unique                      // Unique username
+  email     String   @unique                      // Unique email address
+  password  String?                               // Password for local authentication (optional for OAuth users)
+  googleId  String?  @unique                      // Google OAuth ID (null for non-OAuth users)
+  role      String   @default("user")             // Role (e.g., 'user' or 'admin')
+  polls     Poll[]   @relation("PollCreator")     // Polls created by the user
+  votes     Vote[]                               // Votes cast by the user
+  createdAt DateTime @default(now())              // Timestamp for user creation
+}
+
+// Poll model
+model Poll {
+  id         Int      @id @default(autoincrement()) // Primary key
+  question   String                                // The poll question
+  options    Json                                  // JSON array of poll options (e.g., ["Option 1", "Option 2"])
+  deadline   DateTime                              // Poll deadline
+  creator    User     @relation("PollCreator", fields: [creatorId], references: [id]) // Relation to the creator
+  creatorId  Int                                   // Foreign key for the poll creator
+  votes      Vote[]                                // Votes for this poll
+  createdAt  DateTime @default(now())              // Timestamp for poll creation
+}
+
+// Vote model
+model Vote {
+  id             Int      @id @default(autoincrement()) // Primary key
+  user           User     @relation(fields: [userId], references: [id]) // Relation to the user who cast the vote
+  userId         Int                                   // Foreign key for the user
+  poll           Poll     @relation(fields: [pollId], references: [id]) // Relation to the poll
+  pollId         Int                                   // Foreign key for the poll
+  selectedOption Int                                   // The index of the selected option in the poll's options array
+  votedAt        DateTime @default(now())              // Timestamp for when the vote was cast
+  @@unique([userId, pollId])                           // Ensure a user can vote only once per poll
+}
+
