@@ -19,28 +19,27 @@ generator client {
 
 // User model
 model User {
-  id        Int      @id @default(autoincrement()) // Primary key
-  username  String   @unique                      // Unique username
-  email     String   @unique                      // Unique email address
-  password  String?                               // Password for local authentication (optional for OAuth users)
+  id        Int      @id @default(autoincrement())
+  username  String?                                // Optional username (e.g., derived from Google profile)
+  email     String   @unique                      // User's email address, unique for each user
   googleId  String?  @unique                      // Google OAuth ID (null for non-OAuth users)
-  role      String   @default("user")             // Role (e.g., 'user' or 'admin')
-  polls     Poll[]   @relation("PollCreator")     // Polls created by the user
-  votes     Vote[]                               // Votes cast by the user
+  role      String   @default("user")             // User roles, e.g., "user" or "admin"
+  votes     Vote[]                                // Relation to votes cast by this user
+  polls     Poll[]   @relation("PollCreator")     // Relation to polls created by this user
   createdAt DateTime @default(now())              // Timestamp for user creation
 }
 
 // Poll model
 model Poll {
-  id         Int      @id @default(autoincrement()) // Primary key
-  question   String                                // The poll question
-  options    Json                                  // JSON array of poll options (e.g., ["Option 1", "Option 2"])
-  deadline   DateTime                              // Poll deadline
-  creator    User     @relation("PollCreator", fields: [creatorId], references: [id]) // Relation to the creator
-  creatorId  Int                                   // Foreign key for the poll creator
-  votes      Vote[]                                // Votes for this poll
-  createdAt  DateTime @default(now())              // Timestamp for poll creation
+  id         Int      @id @default(autoincrement())
+  question   String
+  options    Json
+  uniqueId   String   @unique // Unique identifier for the sharable link
+  deadline   DateTime
+  votes      Vote[]
+  createdAt  DateTime @default(now())
 }
+
 
 // Vote model
 model Vote {

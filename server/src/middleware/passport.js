@@ -3,39 +3,48 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "http://localhost:3000/auth/google/callback"
-},
-async (accessToken, refreshToken, profile, done) => {
-  // Check if the user exists in your database
-  let user = await prisma.user.findUnique({
-    where: { googleId: profile.id },
-  });
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: 'http://localhost:3000/auth/google/callback',
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        // Check if the user exists
+        let user = await prisma.user.findUnique({
+          where: { googleId: profile.id },
+        });
 
-  if (!user) {
-    // If user does not exist, create a new user
-    user = await prisma.user.create({
-      data: {
-        username: profile.displayName,
-        googleId: profile.id,
-        email: profile.emails[0].value,
-        role: "user", // Default role, can be updated later
-      },
-    });
-  }
+        // If user does not exist, create a new one
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              googleId: profile.id,
+              email: profile.emails[0].value,
+              username: profile.displayName, // Use Google profile name
+            },
+          });
+        }
 
-  return done(null, user);
-}));
+        return done(null, user);
+      } catch (error) {
+        return done(error, null);
+      }
+    }
+  )
+);
 
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user.id); // Store user ID in session
 });
 
 passport.deserializeUser(async (id, done) => {
-  const user = await prisma.user.findUnique({
-    where: { id }
-  });
-  done(null, user);
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
 });
