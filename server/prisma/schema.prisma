@@ -1,12 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 // Define the database connection
-
-
 datasource db {
   provider = "postgresql" // Use PostgreSQL as the database
   url      = env("DATABASE_URL") // Database URL stored in the .env file
@@ -20,36 +12,39 @@ generator client {
 // User model
 model User {
   id        Int      @id @default(autoincrement())
-  username  String?                                // Optional username (e.g., derived from Google profile)
-  email     String   @unique                      // User's email address, unique for each user
-  googleId  String?  @unique                      // Google OAuth ID (null for non-OAuth users)
-  role      String   @default("user")             // User roles, e.g., "user" or "admin"
-  votes     Vote[]                                // Relation to votes cast by this user
-  polls     Poll[]   @relation("PollCreator")     // Relation to polls created by this user
-  createdAt DateTime @default(now())              // Timestamp for user creation
+  username  String? // Optional username (e.g., derived from Google profile)
+  email     String   @unique // User's email address, unique for each user
+  googleId  String?  @unique // Google OAuth ID (null for non-OAuth users)
+  role      String   @default("user") // User roles, e.g., "user" or "admin"
+  votes     Vote[] // Relation to votes cast by this user
+  polls     Poll[]   @relation("PollCreator") // Relation to polls created by this user
+  createdAt DateTime @default(now()) // Timestamp for user creation
 }
 
 // Poll model
 model Poll {
-  id         Int      @id @default(autoincrement())
-  question   String
-  options    Json
-  uniqueId   String   @unique // Unique identifier for the sharable link
-  deadline   DateTime
-  votes      Vote[]
-  createdAt  DateTime @default(now())
-}
+  id        Int      @id @default(autoincrement())
+  question  String
+  options   Json
+  uniqueId  String   @unique // Unique identifier for the sharable link
+  deadline  DateTime
+  votes     Vote[]
+  createdAt DateTime @default(now())
 
+  // Relation to User (creator of the poll)
+  creator   User? @relation("PollCreator", fields: [creatorId], references: [id])
+  creatorId Int? // Foreign key for the creator of the poll
+}
 
 // Vote model
 model Vote {
   id             Int      @id @default(autoincrement()) // Primary key
   user           User     @relation(fields: [userId], references: [id]) // Relation to the user who cast the vote
-  userId         Int                                   // Foreign key for the user
+  userId         Int // Foreign key for the user
   poll           Poll     @relation(fields: [pollId], references: [id]) // Relation to the poll
-  pollId         Int                                   // Foreign key for the poll
-  selectedOption Int                                   // The index of the selected option in the poll's options array
-  votedAt        DateTime @default(now())              // Timestamp for when the vote was cast
-  @@unique([userId, pollId])                           // Ensure a user can vote only once per poll
-}
+  pollId         Int // Foreign key for the poll
+  selectedOption Int // The index of the selected option in the poll's options array
+  votedAt        DateTime @default(now()) // Timestamp for when the vote was cast
 
+  @@unique([userId, pollId]) // Ensure a user can vote only once per poll
+}
