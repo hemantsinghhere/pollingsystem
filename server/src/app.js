@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
-const passport = require('passport');
+const passport = require('passport'); // Load Passport.js
+require('./middleware/passport'); 
 const authRoutes = require('./routes/authRoutes');
 const pollRoutes = require('./routes/pollRoutes');
 // const voteRoutes = require('./routes/voteRoutes');
