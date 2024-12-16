@@ -4,7 +4,8 @@ const passport = require('passport'); // Load Passport.js
 require('./middleware/passport'); 
 const authRoutes = require('./routes/authRoutes');
 const pollRoutes = require('./routes/pollRoutes');
-// const voteRoutes = require('./routes/voteRoutes');
+const voteRoutes = require('./routes/voteRoutes');
+
 
 const app = express();
 
@@ -33,7 +34,7 @@ app.use(passport.session());
 // Register Routes
 app.use('/auth', authRoutes);
 app.use('/polls', pollRoutes);
-// app.use('/votes', voteRoutes);
+app.use('/votes', voteRoutes);
 
 // Start the Server
 const PORT = process.env.PORT || 3000;

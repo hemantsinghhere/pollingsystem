@@ -4,7 +4,7 @@ const { castVote, getPollResults, getVotersForOption } = require('../controllers
 const router = express.Router();
 
 // Cast a Vote
-router.post('/:uniqueId', isAuthenticated, castVote);
+router.post('/:pollId', isAuthenticated, castVote);
 
 // Fetch Poll Results
 router.get('/:uniqueId/results', getPollResults);

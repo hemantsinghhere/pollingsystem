@@ -13,6 +13,6 @@ router.get('/:uniqueId', getPollByUniqueId);
 router.get('/', isAuthenticated, getAllPolls);
 
 // Delete a Poll (Admin Only)
-router.delete('/:uniqueId', isAuthenticated, isAdmin, deletePoll);
+router.delete('/:uniqueId', isAuthenticated, deletePoll);
 
 module.exports = router;

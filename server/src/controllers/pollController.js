@@ -17,6 +17,8 @@ exports.createPoll = async (req, res) => {
 
   try {
     const uniqueId = crypto.randomBytes(8).toString('hex'); // Generate a unique ID for the poll
+    
+    // console.log(req);
 
     const poll = await prisma.poll.create({
       data: {
@@ -90,7 +92,6 @@ exports.getAllPolls = async (req, res) => {
  */
 exports.deletePoll = async (req, res) => {
   const { uniqueId } = req.params;
-
   try {
     const poll = await prisma.poll.findUnique({ where: { uniqueId } });
 
