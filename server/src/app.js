@@ -1,3 +1,5 @@
+const http = require('http');
+const {Server} = require('socket.io');
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport'); // Load Passport.js
@@ -36,6 +38,32 @@ app.use('/auth', authRoutes);
 app.use('/polls', pollRoutes);
 app.use('/votes', voteRoutes);
 
+// setup socket.io server
+const server = http.createServer(app);
+const io = new Server(server);
+
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  // Join a poll room
+  socket.on('joinPoll', (pollId) => {
+    console.log(`User ${socket.id} joined poll room: poll:${pollId}`);
+    socket.join(`poll:${pollId}`);
+  });
+
+  // Leave a poll room
+  socket.on('leavePoll', (pollId) => {
+    console.log(`User ${socket.id} left poll room: poll:${pollId}`);
+    socket.leave(`poll:${pollId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
+  });
+});
+
 // Start the Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = {io};

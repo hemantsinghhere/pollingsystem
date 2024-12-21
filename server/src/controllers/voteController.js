@@ -22,6 +22,14 @@ exports.castVote = async(req, res) => {
             return res.status(400).json({message: "Invalid option selected"});
         }
 
+        const updatedVoteCount = [...poll.voteCount];
+        updatedVoteCount[selectedOption]++;
+
+        await prisma.poll.update({
+            where: { id: parseInt(pollId) },
+            data: { voteCount: updatedVoteCount },
+          });
+
         const vote = await prisma.vote.create({
             data: {
                 userId,
@@ -29,6 +37,11 @@ exports.castVote = async(req, res) => {
                 selectedOption,
             }
         });
+
+        io.to(`poll:${pollId}`).emit('pollUpdate', {
+            voteCount: updatedVoteCount,
+        });
+
         res.status(201).json({ message: 'Vote cast successfully', vote });
     }catch{
         console.error('Error casting vote:', error);
